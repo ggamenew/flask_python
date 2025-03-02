@@ -6,6 +6,9 @@ from PIL import Image
 import time
 import threading
 from tqdm import tqdm
+from dotenv import load_dotenv  # Add this import
+load_dotenv()  # Load environment variables from .env file
+
 
 app = Flask(__name__)
 
@@ -86,4 +89,5 @@ def page_not_found(e):
 
 
 if __name__ == '__main__':
-    app.run()
+    port = int(os.getenv("PORT", 5000))
+    app.run(port=port, host='0.0.0.0')
