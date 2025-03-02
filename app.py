@@ -21,9 +21,13 @@ else:
 
 model = None 
 
+# readable current time
+current_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+
+
 @app.route('/')
 def home():
-    return 'Hello, World!'
+    return 'Hello, World! Deployed <br/>' + current_time
 
 
 # Add a global lock
