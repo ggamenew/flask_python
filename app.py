@@ -5,19 +5,38 @@ import moondream as md
 from PIL import Image
 import time
 import threading
+from tqdm import tqdm
 
 app = Flask(__name__)
 
 file_url = 'https://huggingface.co/vikhyatk/moondream2/resolve/9dddae84d54db4ac56fe37817aeaeb502ed083e2/moondream-0_5b-int8.mf.gz'
 file_name = 'moondream-0_5b-int8.mf.gz'
 if not os.path.exists(file_name):
-    response = requests.get(file_url)
     print('Downloading model file...', file_name)
-    with open(file_name, 'wb') as f:
-        f.write(response.content)
+    with requests.get(file_url, stream=True) as response:
+        response.raise_for_status()
+        with open(file_name, 'wb') as f:
+            # Download in chunks of 8MB
+            try:
+                total_size = int(response.headers.get('content-length', 0))
+                progress_bar = tqdm(total=total_size, unit='B', unit_scale=True, desc=file_name)
+                for chunk in response.iter_content(chunk_size=8192 * 1024):
+                    f.write(chunk)
+                    progress_bar.update(len(chunk))
+                progress_bar.close()
+            except ImportError:
+                # Simple progress bar if tqdm is not available
+                total_size = int(response.headers.get('content-length', 0))
+                downloaded = 0
+                for chunk in response.iter_content(chunk_size=8192 * 1024):
+                    f.write(chunk)
+                    downloaded += len(chunk)
+                    if total_size > 0:
+                        print(f"\rDownloading: {downloaded/total_size:.1%} complete", end='')
+                print()
+    print('Download complete.')
 else:
     print('Model file already exists:', file_name)
-    
 
 model = None 
 
